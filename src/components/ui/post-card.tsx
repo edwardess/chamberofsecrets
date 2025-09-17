@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Post } from "@/lib/types";
 import PostModal from "@/components/post-modal";
 import AdminControls from "@/components/admin/admin-controls";
@@ -17,7 +17,7 @@ interface PostCardProps {
 
 export default function PostCard({ post, onEdit, onDelete }: PostCardProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isHeartDisabled, setIsHeartDisabled] = useState(() => checkHeartDisabled());
+  const [isHeartDisabled, setIsHeartDisabled] = useState(false);
   const [heartCount, setHeartCount] = useState(post.hearts || 0);
   const { isAdmin } = useAuth();
   const router = useRouter();
@@ -35,6 +35,11 @@ export default function PostCard({ post, onEdit, onDelete }: PostCardProps) {
     return false;
   }
 
+  // Initialize heart disabled state on client side only
+  useEffect(() => {
+    setIsHeartDisabled(checkHeartDisabled());
+  }, [post.id]);
+
   // Format date
   const formattedDate = new Intl.DateTimeFormat("en-US", {
     month: "short",
@@ -44,7 +49,13 @@ export default function PostCard({ post, onEdit, onDelete }: PostCardProps) {
 
   // Create a truncated preview of the content
   const createPreview = (html: string) => {
-    // Create a temporary div to parse HTML
+    if (typeof window === 'undefined') {
+      // Server-side: strip HTML tags and truncate
+      const text = html.replace(/<[^>]*>/g, '');
+      return text.length > 160 ? text.substring(0, 160) + "..." : text;
+    }
+    
+    // Client-side: Create a temporary div to parse HTML
     const tempDiv = document.createElement("div");
     tempDiv.innerHTML = html;
     
