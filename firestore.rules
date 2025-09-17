@@ -1,0 +1,54 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Posts collection rules
+    match /posts/{postId} {
+      // Allow anyone to read posts (public access)
+      allow read: if true;
+      
+      // Only authenticated users can create, update, or delete posts
+      allow create: if request.auth != null 
+        && request.auth.uid != null
+        && validatePostData(request.resource.data);
+      
+      allow update: if request.auth != null 
+        && request.auth.uid != null
+        && validatePostData(request.resource.data);
+      
+      allow delete: if request.auth != null 
+        && request.auth.uid != null;
+    }
+    
+    // Helper function to validate post data structure
+    function validatePostData(data) {
+      return data.keys().hasAll(['title', 'category', 'contentHTML', 'contentJSON', 'createdAt'])
+        && data.title is string
+        && data.category is string
+        && data.contentHTML is string
+        && data.contentJSON is map
+        && data.createdAt is timestamp
+        && data.title.size() > 0
+        && data.category.size() > 0
+        && data.contentHTML.size() > 0;
+    }
+    
+    // Deny all other access
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+

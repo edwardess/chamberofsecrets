@@ -1,0 +1,204 @@
+# FAQ Application Development Journey
+
+## Building the FAQ Application: A Chronological Journey
+
+### Phase 1: Project Setup
+We started with a fresh Next.js 15.5.3 project using TypeScript and Tailwind CSS v4. We installed the necessary dependencies including HeroUI (NextUI), Framer Motion, Firebase SDK (Auth, Firestore, Storage), and Tiptap for rich text editing. We set up the basic file structure and configured the global providers in the layout component. The Inter font was added globally, and we created the initial scaffolding for the application.
+
+### Phase 2: Firebase Setup and Security
+We configured Firebase by setting up the connection in `src/lib/firebase.ts` with the provided configuration values. We defined the schema for our data models in `src/lib/types.ts`, initially creating interfaces for posts with title, category, timestamps, and content fields. We implemented security rules to ensure posts could be read without login but required authentication for writes.
+
+### Phase 3: Public Layout and Sidebar
+We built the responsive sidebar for the public layout, implementing a fixed sidebar on desktop and a hamburger menu that opens a drawer on mobile. We added functionality to track the active category and highlight it visually. We also implemented skeleton loaders for a better user experience during data fetching.
+
+### Phase 4: Public Post List and Tags
+We enhanced the post list to display posts from the current category and implemented tag filtering. We collected unique tags from posts in the current category and rendered them as pill-shaped buttons above the post list. We implemented the filtering logic to show posts that match the selected tag, with "All" as the default tag.
+
+### Phase 5: Public Post Modal
+We created a modal component to display the full content of a post when clicked. The modal included a header with the post title, formatted date, and tags, as well as a body that rendered the HTML content. We added smooth animations for opening and closing the modal and implemented accessibility features like focus trapping and keyboard navigation.
+
+### Phase 6: Authentication and Admin Controls
+We implemented Firebase authentication for admin users and created a global auth context to manage user state. We built a login form and protected routes to ensure only authenticated users could access admin features. We modified the layout to show admin controls (Edit, Delete, New Post buttons) when a user is logged in as an admin.
+
+### Phase 6.5: Unified Layout Adjustments
+We refactored the application to use a unified layout for both public and admin views. This involved restructuring the data model to use spaces (formerly categories) organized into groups. We updated the sidebar to display groups as headings with nested spaces, and we implemented conditional rendering of admin controls based on the user's authentication status.
+
+### Phase 6.6: Space and Group Management
+We implemented CRUD operations for spaces and groups, allowing admins to create, edit, and delete both. We added modals for these operations and updated the data model to include relationships between groups, spaces, and posts. We also implemented functionality to handle the reassignment or deletion of posts when a space is deleted.
+
+### Phase 7: Post Management in Unified Layout
+We implemented full CRUD functionality for posts directly in the unified interface. We created a post editor modal with a rich text editor (Tiptap), fields for title, space selection, and tags, and buttons for saving or canceling. We added admin controls to create new posts, edit existing posts, and delete posts with confirmation. We also implemented toast notifications for feedback on successful operations.
+
+### Phase 7.5: UI Polish and Bug Fixes
+We encountered several challenges with the UI components, particularly with modal backgrounds and toast notifications. We resolved these issues by:
+
+1. **Custom Modal Component**: We created a custom modal component using Framer Motion for animations and proper backdrop handling, replacing the problematic HeroUI modal.
+
+2. **Custom Toast System**: We built a custom toast notification system that provides success, error, info, and warning messages with smooth animations and automatic dismissal.
+
+3. **Styling Improvements**: We enhanced the styling of form elements, added validation feedback, improved the Tiptap editor toolbar, and implemented a sticky footer in the post editor modal.
+
+4. **Accessibility Enhancements**: We added proper ARIA attributes, focus trapping, and keyboard navigation to improve accessibility throughout the application.
+
+### Phase 7.6: View Modal Enhancements
+We significantly improved the post view modal for a smoother, more spacious reading experience:
+
+1. **Redesigned Modal Container**: We widened the modal to approximately 900px on desktop while ensuring it's full-width on mobile. Instead of vertically centering, we positioned it to start from the top of the viewport with comfortable top margin, creating a reading drawer effect.
+
+2. **Enhanced Header Section**: We added a profile photo (WFH Couple avatar) positioned to the left of the title, with post metadata (date and tags) displayed below. We also improved the close button with subtle hover animations.
+
+3. **Refined Typography**: We enhanced the styling for all content elements including headings, paragraphs, lists, and links to ensure optimal readability and visual hierarchy.
+
+4. **Responsive Media**: We implemented responsive containers for images and videos, ensuring they scale properly while maintaining aspect ratios and adding rounded corners for visual consistency.
+
+5. **Improved Animations**: We refined the open/close animations with smooth transitions and added subtle hover effects for interactive elements.
+
+6. **Accessibility Improvements**: We enhanced keyboard navigation, focus management, and screen reader support throughout the modal.
+
+### Phase 7.7: Global Design Revamp
+We adjusted the global theme, scale, and layout to create a cleaner, lighter, and more compact design:
+
+1. **Light Theme Standardization**: We set a default light theme across the application and removed dark mode functionality for a consistent visual experience.
+
+2. **Size Recalibration**: We decreased font sizes, padding, and margins throughout the interface to create a more compact but still readable layout.
+
+3. **Sidebar Refinement**: We reduced spacing between sidebar items and refined the hover/active states to be more subtle yet still visually distinct.
+
+4. **Header Removal**: We removed the global header bar entirely, allowing users to land directly on the sidebar and content layout.
+
+5. **Post List Density**: We reduced card sizes and refined typography to display more posts per viewport while maintaining readability.
+
+6. **Modal Scaling**: We ensured both the editor and view modals inherited the new compact scale while remaining comfortable to use.
+
+### Phase 8: Rich Text Editor Upgrade - Jodit Integration
+We replaced the Tiptap editor with Jodit Editor to enhance the content creation experience. This significant upgrade included:
+
+1. **Advanced Media Support**: We configured Jodit to support embedding videos from YouTube and Vimeo with a custom popup interface for easy URL insertion. The editor automatically converts standard video URLs to proper embed formats.
+
+2. **Responsive Media Handling**: We implemented responsive containers for embedded videos and images, ensuring they display correctly on all device sizes. Images are automatically styled with rounded corners and proper margins.
+
+3. **Base64 Image Handling**: We configured the uploader to insert images as Base64 URIs with a maximum file size of 5MB to prevent exceeding Firestore's document size limits.
+
+4. **Enhanced Toolbar**: We expanded the editing capabilities by adding comprehensive formatting options including font family selection, paragraph styles, alignment controls, and special character insertion.
+
+5. **Content Size Validation**: We implemented checks to ensure content doesn't exceed Firestore's 1MB document size limit, with friendly error messages for users.
+
+6. **Custom Styling**: We added extensive custom CSS to make the editor match our application's design system, including proper font rendering, spacing, and interactive elements.
+
+### Phase 9: Post Card and List Redesign
+We completely redesigned the post cards and list view to create a cleaner, more modern appearance:
+
+1. **Profile Integration**: We added profile images to post cards, positioning them to the left of the title and date, creating a more social media-like experience.
+
+2. **Simplified Cards**: We removed content previews and tag displays from cards to create a cleaner, more focused interface that emphasizes the post titles.
+
+3. **Unified Border Design**: We replaced individual card borders with a single container border and dividers between posts, creating a more cohesive list appearance.
+
+4. **Author Attribution**: We updated the date display to include "The WFH Couple posted at [date]" to personalize the content.
+
+5. **Shadow Effects**: We added subtle shadow effects to the post list container to create depth and visual hierarchy.
+
+### Phase 10: Performance Optimization and Lazy Loading
+We implemented significant performance improvements to enhance the user experience:
+
+1. **Lazy Content Loading**: We restructured the post modal to fetch content only when opened, rather than loading all post content upfront. This dramatically reduced initial load times and memory usage.
+
+2. **Skeleton Placeholders**: We created detailed, anatomically correct skeleton placeholders that mimic the structure of actual content, providing a smoother loading experience.
+
+3. **Strategic Delays**: We implemented a 400ms delay before showing loading states to prevent UI flashing for quick loads, creating a more polished experience.
+
+4. **Error Handling**: We added robust error handling for content fetching with user-friendly error messages.
+
+5. **Modal Positioning**: We adjusted the post modal to appear near the top of the viewport with consistent spacing, eliminating the need for users to scroll to see the beginning of content.
+
+### Phase 11: Heart Reactions for Posts
+We implemented a social engagement feature allowing users to react to posts with hearts:
+
+1. **Heart Button UI**: We added a heart icon and counter to each post card, positioned on the right side. The heart icon changes from outline to filled when clicked, with a subtle scale animation for visual feedback.
+
+2. **Database Integration**: We extended the post schema to include a hearts field (default 0) and created a dedicated function to increment this counter in Firestore.
+
+3. **Cooldown Mechanism**: We implemented a 4-hour cooldown using localStorage to prevent excessive clicking, while still allowing users to express appreciation for content they enjoy.
+
+4. **Admin Controls**: We added a numeric input field in the post editor modal allowing admins to manually adjust heart counts if needed.
+
+5. **Optimistic UI Updates**: We implemented immediate UI feedback when users click the heart button, updating the counter instantly before the Firestore operation completes.
+
+6. **Hover Refinements**: We enhanced the hover styles to make the heart button appear consistently clickable regardless of its disabled state, improving the user experience.
+
+### Phase 12: Creator Credit and Donation Modal
+We added a subtle yet important feature to acknowledge the creators and provide support options:
+
+1. **Credit Button**: We implemented a fixed bottom-right button on desktop (hidden on mobile) with the text "Created by Edward, Husband @TheWFHCouple". The button features a subtle border and enhanced hover effects to indicate clickability.
+
+2. **Donation Modal**: We created a clean, well-structured modal that opens when the credit button is clicked. The modal features:
+   - A clear "Support Our Work" header with close button
+   - Two distinct sections with different visual styling:
+     - Support for The WFH Couple (blue theme)
+     - Charity donation option (green theme)
+   - Each section includes a clear explanation of the purpose and selectable GCash details
+   - An explicit statement that "We do not sell anything" to clarify the nature of the support
+   - Smooth animations for opening and closing
+
+3. **Visual Design**: We paid careful attention to the visual design of both the button and modal:
+   - The button uses a clean white background with border and transforms on hover
+   - The modal uses color-coded sections with contrasting backgrounds
+   - Text is clearly hierarchical with proper spacing and font weights
+   - GCash details are prominently displayed and selectable for easy copying
+
+4. **Responsive Behavior**: We ensured the credit button is only visible on desktop devices, while the modal itself remains fully responsive and usable on any device if accessed.
+
+5. **Accessibility**: We added proper ARIA labels, keyboard navigation, and ensured the modal can be closed via multiple methods (X button, backdrop click, ESC key).
+
+## Challenges Overcome
+
+Throughout this journey, we faced and overcame various challenges, including:
+- Resolving syntax errors and build issues
+- Fixing transparency problems with modal backgrounds and dropdowns
+- Implementing proper error handling and validation
+- Creating custom components when library components didn't meet our needs
+- Ensuring a consistent and responsive UI across different screen sizes
+- Managing Firestore document size limits with rich content
+- Optimizing performance with lazy loading and strategic rendering
+- Handling embedded media responsively across different screen sizes
+- Balancing feature richness with performance considerations
+- Creating intuitive user interfaces that work well for both admins and visitors
+- Implementing social features like heart reactions with proper cooldown mechanisms
+- Designing subtle yet effective credit and support options that don't detract from the main content
+
+## Technical Stack
+
+- **Frontend**: Next.js 15.5.3 with TypeScript and Tailwind CSS v4
+- **UI Components**: HeroUI (NextUI) with custom components when needed
+- **Animations**: Framer Motion
+- **Backend**: Firebase (Auth, Firestore, Storage)
+- **Rich Text Editing**: Jodit Editor (upgraded from Tiptap)
+- **State Management**: React Context API
+- **Authentication**: Firebase Authentication
+- **Media Handling**: Base64 encoding for images, responsive containers for videos
+- **Performance Optimization**: Lazy loading, skeleton placeholders, strategic delays
+- **Social Features**: Heart reactions with localStorage-based cooldown
+- **Support System**: Custom donation modal with selectable payment details
+
+## Final Result
+
+The result is a comprehensive FAQ application with a clean, modern UI that allows admins to manage content efficiently while providing an excellent experience for public users browsing the FAQ content. The application features:
+
+- Responsive design that works well on both desktop and mobile devices
+- Intuitive navigation with a sidebar organized by groups and spaces
+- Advanced rich text editing with support for images, videos, and formatting
+- Tag-based filtering to help users find relevant content
+- Smooth animations and transitions for a polished user experience
+- Secure authentication for admin users
+- Comprehensive CRUD operations for managing content
+- Accessibility features for inclusive user experience
+- Performance optimizations for fast loading and smooth interactions
+- Social media-inspired post cards with profile images and author attribution
+- Lazy-loaded content with anatomically correct skeleton placeholders
+- Strategically positioned modals that minimize scrolling
+- Robust error handling and user feedback systems
+- Heart reactions for social engagement with proper cooldown mechanisms
+- Subtle creator attribution with support options
+- Thoughtfully designed donation modal with multiple support paths
+
+This journey demonstrates the iterative process of building a complex web application, addressing challenges as they arise, and continuously improving the user experience. The FAQ application has evolved from a basic information repository to a sophisticated knowledge management system with rich media capabilities, optimized performance, social engagement features, and a thoughtfully designed user interface that acknowledges its creators while providing support options.

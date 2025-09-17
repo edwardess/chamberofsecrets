@@ -1,0 +1,323 @@
+# Masterplan: Circle.so-style Public FAQ Hub
+
+**Stack**: Next.js 14+, HeroUI (NextUI), TailwindCSS v4, Firebase (Firestore + Auth + Storage), Vercel
+
+---
+
+## Context
+
+We are replicating the feel of Circle.so. Visitors see **Spaces** (categories) in a sidebar. Each space contains a list of **posts** (FAQs). Clicking on a post opens a modal that shows the content. Visitors cannot comment, like, or interact — it’s purely a knowledge base.
+
+Admin access lives at `/admin`. Only authenticated users can log in there. The admin dashboard allows **creating, editing, and deleting posts** using a modern, rich text editor (supporting text formatting, colors, highlights, images, and links).
+
+---
+
+## Phase 1. Project Setup
+
+* Initialize a Next.js project with TypeScript and Tailwind v4 preconfigured.
+* Install HeroUI as the component library and set up its provider at the root of the app.
+* Add Framer Motion for smooth animations.
+* Install Firebase SDK (Auth, Firestore, Storage).
+* Add Inter font globally and set it as the default typography.
+* Set up project folders:
+
+  * `app/(public)/` for visitor-facing pages.
+  * `app/admin/` for login and dashboard.
+  * `components/` for shared UI parts like modals, editor, and buttons.
+  * `src/lib/` for Firebase config, data helpers, and type definitions.
+* Prepare `.env.local` file with placeholder keys for Firebase configuration.
+
+---
+
+## Phase 2. Firebase Setup and Security
+
+* Create a new Firebase project in the console.
+* Enable Authentication (email/password method).
+* Enable Firestore in native mode.
+* Enable Storage for images uploaded from the editor.
+* Create one admin user (email and password) that will be used for login.
+* Add security rules:
+
+  * **Read**: open to everyone (anyone can fetch posts).
+  * **Write**: restricted to authenticated users.
+* Define Firestore collection `posts` with fields:
+
+  * `title` (string)
+  * `category` (string)
+  * `createdAt` (timestamp)
+  * `contentHTML` (string, for fast public rendering)
+  * `contentJSON` (object, for restoring into the editor)
+* Seed the database with 2–3 example posts across different categories to test layout early.
+
+---
+
+## Phase 3. Public Layout and Sidebar
+
+* Design a responsive layout:
+
+  * On desktop: fixed left sidebar with categories, scrollable main content area.
+  * On mobile: hamburger button that opens a drawer containing the categories.
+* Sidebar behavior:
+
+  * Show “All” option first, followed by unique categories from Firestore.
+  * Highlight the active category.
+* When a category is clicked, filter posts in the main content area accordingly.
+* Add loading skeletons while posts and categories are being fetched.
+* Style the sidebar and content area to match Circle.so’s clean, modern design: soft shadows, rounded corners, balanced spacing.
+
+---
+
+## Phase 4. Public Post List
+
+* Render a list of posts for the selected category.
+* Each list item shows:
+
+  * Post title.
+  * Created date (formatted in a friendly way, e.g., “Sep 17, 2025”).
+* Visual behavior:
+
+  * On hover: subtle background tint or shadow.
+  * On click: visual press feedback.
+* Functional behavior:
+
+  * When clicked, set the clicked post as active.
+  * Trigger the modal to open with that post’s details.
+
+---
+
+## Phase 5. Public Post Modal
+
+* Use HeroUI’s modal/dialog component to display the selected post.
+* Modal design:
+
+  * Header: post title and created date.
+  * Body: render the post’s content (from `contentHTML`).
+  * Content should support headings, lists, links, and images.
+* Modal behavior:
+
+  * Opens smoothly with fade/scale animation.
+  * Closes on overlay click, Escape key, or close button.
+  * Focus is trapped inside the modal while open.
+* Modal is responsive: full-height on mobile, centered card on desktop.
+* Ensure scrolling is smooth inside the modal if the content is long.
+
+---
+
+## Phase 6. Admin Login and Session Handling
+
+* Create `/admin/login` page with a simple form (email and password).
+* Use Firebase Authentication to sign in with email/password.
+* On success: redirect to `/admin/dashboard`.
+* Create a global auth context that listens to Firebase’s `onAuthStateChanged`.
+* Ensure session persists across refreshes.
+* Create a logout button available inside the admin area.
+* Add a Protected wrapper: any attempt to access admin pages without being logged in should redirect back to `/admin/login`.
+
+
+Phase 6.5 Prompt — Unified Public/Admin Layout Adjustments
+Goal: Merge public and admin experiences into a single shared layout, with conditional renders for admins.
+Instructions:
+1. Spaces & Groups
+•	Replace the current sidebar “Categories” label with customizable group labels.
+•	Each group can contain multiple spaces.
+•	Example structure in Firestore:
+o	Group: “Support” → Spaces: Account Management, Billing, Getting Started.
+o	Group: “Product” → Spaces: Test, Pricing.
+•	Sidebar should:
+o	Display each group as a heading.
+o	Nest spaces under that heading.
+o	Clicking a space filters posts to only that space.
+•	Groups should be manageable in Firestore so admins can add new ones.
+2. Conditional Admin Controls
+•	Use isAdmin state from auth context to conditionally render admin controls:
+o	In post list: show Edit and Delete buttons inline with each post.
+o	Above post list: show New Post button.
+o	In space/group management: allow admins to add/edit/delete spaces (optional stretch).
+•	Public users see none of these controls.
+3. Navigation
+•	/admin should route the user to the same layout as the public app but with admin controls enabled.
+•	Admins do not get a separate dashboard — they see the exact public UI, augmented with editing tools.
+4. Benefits
+•	Single codebase for layout → less duplication.
+•	Public visitors see a clean read-only FAQ hub.
+•	Admins see the same hub with edit powers layered on top.
+5. Testing Checklist
+•	Public visitor:
+o	Sees only spaces, tags, posts, and modals.
+o	No New, Edit, or Delete buttons appear.
+•	Admin after login:
+o	Sees the same spaces/tags/posts.
+o	Has New, Edit, and Delete buttons.
+o	Can create/edit/delete posts directly from the main UI.
+•	Switching user state (login/logout) toggles controls instantly.
+
+Phase 6.6 Prompt — Space & Group (Category) Management
+Goal: Allow admins to fully manage spaces and their parent groups (categories) through modals and inline controls.
+Instructions:
+1. Data Model (recap)
+•	Group = top-level container (e.g., “Support”).
+•	Space = belongs to a group (e.g., “Account Management” under “Support”).
+•	Firestore:
+o	groups collection → { name: string }.
+o	spaces collection → { name: string, groupId: string }.
+o	Posts reference spaceId.
+2. Adding Groups
+•	Add “New Group” button at the top of the sidebar when admin is logged in.
+•	On click:
+o	Open modal with single input → “Group Name”.
+o	Submit creates a new document in groups.
+o	Sidebar updates in real time.
+3. Editing & Deleting Groups
+•	Each group heading in the sidebar should have small admin-only buttons:
+o	Edit → opens modal with current group name, allows renaming.
+o	Delete → opens confirmation modal. On confirm:
+	Deletes group document.
+	Also deletes or reassigns spaces inside (choose reassign flow or block if spaces exist).
+•	Public users never see these controls.
+4. Adding Spaces
+•	Under each group, add “+ New Space” button when admin is logged in.
+•	On click:
+o	Open modal with input for space name.
+o	On submit: create new spaces doc linked to the group.
+o	Sidebar updates immediately.
+5. Editing & Deleting Spaces
+•	Each space item in the sidebar should show small admin-only buttons:
+o	Edit → modal with input for renaming. Updates Firestore doc.
+o	Delete → confirmation modal. On confirm:
+	Deletes the space document.
+	Also prompts about what to do with posts in that space (delete all vs reassign to another space).
+•	Posts tied to deleted spaces must be handled gracefully (either deleted or reassigned).
+6. Modal Design
+•	All modals should use HeroUI dialog with:
+o	Title (e.g., “Add Space”, “Edit Group”).
+o	Inputs for text.
+o	Buttons: Cancel / Save (or Cancel / Delete).
+•	Smooth animation (fade + scale).
+7. Testing Checklist
+•	As admin:
+o	Can create a new group → appears immediately in sidebar.
+o	Can edit group name → updates live.
+o	Can delete group → sidebar updates, spaces/posts handled properly.
+o	Can create a new space inside a group → appears immediately under the group.
+o	Can edit space name → updates live.
+o	Can delete space → posts reassigned or deleted, UI updates.
+•	As public visitor:
+o	None of these controls are visible.
+
+
+
+
+
+
+
+---
+
+Phase 7 Prompt — Post Management in Unified Layout
+Goal: Give admins full CRUD on posts directly in the same interface that public users browse.
+Instructions:
+1. New Post Creation
+•	Show a “+ New Post” button at the top of the post list (visible only to admins).
+•	Clicking opens a Post Editor Modal.
+•	Modal fields:
+o	Title input.
+o	Space (pre-filled with current space context, but selectable).
+o	Tags input (chip-based, lowercase, press Enter to add).
+o	Rich text editor (Tiptap) for content.
+•	On save:
+o	Create Firestore doc in posts collection with title, spaceId, tags, createdAt, contentHTML, contentJSON.
+o	Close modal and refresh list.
+o	Show success toast.
+2. Edit Existing Post
+•	Each post card (in list view) shows Edit button for admins.
+•	Clicking opens the same Post Editor Modal, but pre-populated with existing data.
+•	On save: update Firestore doc.
+•	Close modal and refresh list.
+3. Delete Post
+•	Each post card shows Delete button for admins.
+•	Clicking opens confirmation modal.
+•	On confirm: delete Firestore doc (and images if tracked).
+•	Optimistically remove post from list.
+•	Show toast: “Post deleted.”
+4. Testing Checklist
+•	As admin:
+o	Can add new posts scoped to a space.
+o	Can edit post title, tags, or content.
+o	Can delete posts safely.
+•	As public user:
+o	None of these buttons are visible.
+________________________________________
+Phase 8 Prompt — Post Modal with Admin Enhancements
+Goal: Keep the post modal consistent for public users, but add admin controls when logged in.
+Instructions:
+1. Public View (unchanged)
+•	Title + created date.
+•	Tags displayed as chips.
+•	Content rendered from contentHTML.
+2. Admin Enhancements
+•	In modal header (next to close button), add Edit button.
+•	Edit button opens Post Editor Modal with the current post loaded.
+•	Add Delete button (either in header or footer).
+•	Confirm deletion removes post and closes modal.
+3. Behavior
+•	Public users → clean, read-only modal.
+•	Admins → modal doubles as quick management view.
+4. Testing Checklist
+•	Public user cannot see edit/delete inside modal.
+•	Admin can directly manage post from modal without leaving context.
+________________________________________
+Phase 9 Prompt — Space & Group Management Enhancements
+Goal: Expand on Phase 6.6 with tighter integration into the main interface.
+Instructions:
+1. Groups (Sidebar)
+•	Admins see:
+o	“+ New Group” button at top.
+o	Small Edit / Delete icons next to each group heading.
+•	Editing opens modal → rename group.
+•	Deleting opens confirmation modal → must confirm handling of spaces inside (delete all vs block until reassigned).
+2. Spaces (Sidebar)
+•	Admins see:
+o	“+ New Space” button under each group.
+o	Small Edit / Delete icons next to each space.
+•	Editing opens modal → rename space.
+•	Deleting opens confirmation modal → must confirm handling of posts inside (delete all vs reassign to another space).
+3. Behavior for Visitors
+•	None of these controls appear.
+•	Sidebar remains read-only for them.
+4. Testing Checklist
+•	Admin can CRUD groups and spaces from sidebar in real-time.
+•	Public visitors see only static group + space list.
+________________________________________
+Phase 10 Prompt — Deployment & Final QA
+Goal: Deploy app and verify all features for both public and admin roles.
+Instructions:
+1. Deployment
+•	Push repo to GitHub.
+•	Connect repo to Vercel.
+•	Add Firebase keys as environment variables.
+•	Deploy production build.
+2. Public QA
+•	Navigate site as visitor (not logged in):
+o	Groups and spaces visible in sidebar.
+o	Tags visible within each space.
+o	Posts listed and open in modal.
+o	No admin buttons visible.
+3. Admin QA
+•	Log in with Firebase account.
+•	Validate:
+o	“New Group” and “New Space” buttons work.
+o	Groups and spaces can be edited and deleted.
+o	“New Post” button creates new posts inside a space.
+o	Edit/Delete buttons appear on posts.
+o	Modal allows edit/delete of a post.
+•	All actions sync with Firestore in real time.
+4. Edge Case QA
+•	Delete a group with spaces → confirm correct behavior.
+•	Delete a space with posts → confirm posts are reassigned or deleted.
+•	Upload image in editor → confirm image is stored in Firebase Storage and visible in post modal.
+5. Final Polish
+•	Confirm mobile responsiveness for sidebar, tag filters, and modals.
+•	Test keyboard accessibility:
+o	Tab focus order.
+o	Escape closes modals.
+•	Optimize for smooth animations with Framer Motion.
+
