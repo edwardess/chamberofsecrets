@@ -20,6 +20,10 @@ const POSTS_COLLECTION = 'posts';
 
 // Create a new post
 export async function createPost(postData: CreatePostData): Promise<string> {
+  if (!db) {
+    throw new Error('Database not initialized');
+  }
+  
   try {
     // Check the size of the content to make sure it doesn't exceed Firestore limits
     // Firestore has a document size limit of 1MB
@@ -49,6 +53,10 @@ export async function createPost(postData: CreatePostData): Promise<string> {
 
 // Update an existing post
 export async function updatePost(postId: string, postData: UpdatePostData): Promise<void> {
+  if (!db) {
+    throw new Error('Database not initialized');
+  }
+  
   try {
     // Check the size of the content to make sure it doesn't exceed Firestore limits
     const contentSize = new TextEncoder().encode(JSON.stringify(postData)).length;
@@ -72,6 +80,10 @@ export async function updatePost(postId: string, postData: UpdatePostData): Prom
 
 // Delete a post
 export async function deletePost(postId: string): Promise<void> {
+  if (!db) {
+    throw new Error('Database not initialized');
+  }
+  
   try {
     const postRef = doc(db, POSTS_COLLECTION, postId);
     await deleteDoc(postRef);
@@ -83,6 +95,10 @@ export async function deletePost(postId: string): Promise<void> {
 
 // Get all posts
 export async function getAllPosts(): Promise<Post[]> {
+  if (!db) {
+    throw new Error('Database not initialized');
+  }
+  
   try {
     const q = query(collection(db, POSTS_COLLECTION), orderBy('createdAt', 'desc'));
     const querySnapshot = await getDocs(q);
@@ -106,6 +122,10 @@ export async function getAllPosts(): Promise<Post[]> {
 
 // Get posts by space ID
 export async function getPostsBySpace(spaceId: string): Promise<Post[]> {
+  if (!db) {
+    throw new Error('Database not initialized');
+  }
+  
   try {
     const q = query(
       collection(db, POSTS_COLLECTION), 
@@ -133,6 +153,10 @@ export async function getPostsBySpace(spaceId: string): Promise<Post[]> {
 
 // Get a single post by ID
 export async function getPostById(postId: string): Promise<Post | null> {
+  if (!db) {
+    throw new Error('Database not initialized');
+  }
+  
   try {
     const postRef = doc(db, POSTS_COLLECTION, postId);
     const postSnap = await getDoc(postRef);
@@ -158,6 +182,10 @@ export async function getPostById(postId: string): Promise<Post | null> {
 
 // Get unique tags from posts in a specific space
 export async function getTagsBySpace(spaceId: string): Promise<string[]> {
+  if (!db) {
+    throw new Error('Database not initialized');
+  }
+  
   try {
     const posts = await getPostsBySpace(spaceId);
     // Flatten all tags arrays and get unique values
@@ -172,6 +200,10 @@ export async function getTagsBySpace(spaceId: string): Promise<string[]> {
 
 // Increment hearts count for a post
 export async function incrementHearts(postId: string): Promise<void> {
+  if (!db) {
+    throw new Error('Database not initialized');
+  }
+  
   try {
     const postRef = doc(db, POSTS_COLLECTION, postId);
     await updateDoc(postRef, {

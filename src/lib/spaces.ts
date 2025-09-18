@@ -18,6 +18,10 @@ const SPACES_COLLECTION = 'spaces';
 
 // Create a new space
 export async function createSpace(spaceData: CreateSpaceData): Promise<string> {
+  if (!db) {
+    throw new Error('Database not initialized');
+  }
+  
   try {
     const docRef = await addDoc(collection(db, SPACES_COLLECTION), {
       ...spaceData,
@@ -32,6 +36,10 @@ export async function createSpace(spaceData: CreateSpaceData): Promise<string> {
 
 // Update an existing space
 export async function updateSpace(spaceId: string, spaceData: UpdateSpaceData): Promise<void> {
+  if (!db) {
+    throw new Error('Database not initialized');
+  }
+  
   try {
     const spaceRef = doc(db, SPACES_COLLECTION, spaceId);
     await updateDoc(spaceRef, spaceData as FirestoreDocumentData);
@@ -43,6 +51,10 @@ export async function updateSpace(spaceId: string, spaceData: UpdateSpaceData): 
 
 // Delete a space
 export async function deleteSpace(spaceId: string): Promise<void> {
+  if (!db) {
+    throw new Error('Database not initialized');
+  }
+  
   try {
     const spaceRef = doc(db, SPACES_COLLECTION, spaceId);
     await deleteDoc(spaceRef);
@@ -54,6 +66,10 @@ export async function deleteSpace(spaceId: string): Promise<void> {
 
 // Get all spaces
 export async function getAllSpaces(): Promise<Space[]> {
+  if (!db) {
+    throw new Error('Database not initialized');
+  }
+  
   try {
     const q = query(collection(db, SPACES_COLLECTION), orderBy('groupId'), orderBy('order'));
     const querySnapshot = await getDocs(q);
@@ -70,6 +86,10 @@ export async function getAllSpaces(): Promise<Space[]> {
 
 // Get spaces by groupId
 export async function getSpacesByGroupId(groupId: string): Promise<Space[]> {
+  if (!db) {
+    throw new Error('Database not initialized');
+  }
+  
   try {
     const q = query(
       collection(db, SPACES_COLLECTION), 
@@ -90,6 +110,10 @@ export async function getSpacesByGroupId(groupId: string): Promise<Space[]> {
 
 // Get a single space by ID
 export async function getSpaceById(spaceId: string): Promise<Space | null> {
+  if (!db) {
+    throw new Error('Database not initialized');
+  }
+  
   try {
     const spaceRef = doc(db, SPACES_COLLECTION, spaceId);
     const spaceSnap = await getDoc(spaceRef);

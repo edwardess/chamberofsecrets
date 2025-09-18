@@ -14,6 +14,10 @@ const POSTS_COLLECTION = 'posts';
 
 // Reassign posts from one space to another
 export async function reassignPosts(fromSpaceId: string, toSpaceId: string): Promise<number> {
+  if (!db) {
+    throw new Error('Database not initialized');
+  }
+  
   try {
     const posts = await getPostsBySpace(fromSpaceId);
     
@@ -21,10 +25,10 @@ export async function reassignPosts(fromSpaceId: string, toSpaceId: string): Pro
       return 0;
     }
     
-    const batch = writeBatch(db);
+    const batch = writeBatch(db!);
     
     posts.forEach(post => {
-      const postRef = doc(db, POSTS_COLLECTION, post.id);
+      const postRef = doc(db!, POSTS_COLLECTION, post.id);
       batch.update(postRef, { spaceId: toSpaceId });
     });
     
@@ -38,6 +42,10 @@ export async function reassignPosts(fromSpaceId: string, toSpaceId: string): Pro
 
 // Delete all posts in a space
 export async function deletePostsBySpace(spaceId: string): Promise<number> {
+  if (!db) {
+    throw new Error('Database not initialized');
+  }
+  
   try {
     const posts = await getPostsBySpace(spaceId);
     
@@ -45,10 +53,10 @@ export async function deletePostsBySpace(spaceId: string): Promise<number> {
       return 0;
     }
     
-    const batch = writeBatch(db);
+    const batch = writeBatch(db!);
     
     posts.forEach(post => {
-      const postRef = doc(db, POSTS_COLLECTION, post.id);
+      const postRef = doc(db!, POSTS_COLLECTION, post.id);
       batch.delete(postRef);
     });
     
@@ -62,16 +70,20 @@ export async function deletePostsBySpace(spaceId: string): Promise<number> {
 
 // Delete all spaces in a group and their posts
 export async function deleteSpacesAndPostsByGroup(groupId: string): Promise<{ spacesDeleted: number, postsDeleted: number }> {
+  if (!db) {
+    throw new Error('Database not initialized');
+  }
+  
   try {
     // Query all spaces in the group
-    const spacesQuery = query(collection(db, 'spaces'), where('groupId', '==', groupId));
+    const spacesQuery = query(collection(db!, 'spaces'), where('groupId', '==', groupId));
     const spacesSnapshot = await getDocs(spacesQuery);
     
     if (spacesSnapshot.empty) {
       return { spacesDeleted: 0, postsDeleted: 0 };
     }
     
-    const batch = writeBatch(db);
+    const batch = writeBatch(db!);
     let totalPostsDeleted = 0;
     
     // For each space, get and delete its posts
@@ -79,7 +91,7 @@ export async function deleteSpacesAndPostsByGroup(groupId: string): Promise<{ sp
       const spaceId = spaceDoc.id;
       
       // Get posts in this space
-      const postsQuery = query(collection(db, POSTS_COLLECTION), where('spaceId', '==', spaceId));
+      const postsQuery = query(collection(db!, POSTS_COLLECTION), where('spaceId', '==', spaceId));
       const postsSnapshot = await getDocs(postsQuery);
       
       // Delete all posts in this space
@@ -105,16 +117,20 @@ export async function deleteSpacesAndPostsByGroup(groupId: string): Promise<{ sp
 
 // Reassign all spaces in a group to another group
 export async function reassignSpacesToGroup(fromGroupId: string, toGroupId: string): Promise<number> {
+  if (!db) {
+    throw new Error('Database not initialized');
+  }
+  
   try {
     // Query all spaces in the source group
-    const spacesQuery = query(collection(db, 'spaces'), where('groupId', '==', fromGroupId));
+    const spacesQuery = query(collection(db!, 'spaces'), where('groupId', '==', fromGroupId));
     const spacesSnapshot = await getDocs(spacesQuery);
     
     if (spacesSnapshot.empty) {
       return 0;
     }
     
-    const batch = writeBatch(db);
+    const batch = writeBatch(db!);
     
     // Update each space to the new group
     spacesSnapshot.forEach(spaceDoc => {

@@ -17,6 +17,10 @@ const GROUPS_COLLECTION = 'groups';
 
 // Create a new group
 export async function createGroup(groupData: CreateGroupData): Promise<string> {
+  if (!db) {
+    throw new Error('Database not initialized');
+  }
+  
   try {
     const docRef = await addDoc(collection(db, GROUPS_COLLECTION), {
       ...groupData,
@@ -31,6 +35,10 @@ export async function createGroup(groupData: CreateGroupData): Promise<string> {
 
 // Update an existing group
 export async function updateGroup(groupId: string, groupData: UpdateGroupData): Promise<void> {
+  if (!db) {
+    throw new Error('Database not initialized');
+  }
+  
   try {
     const groupRef = doc(db, GROUPS_COLLECTION, groupId);
     await updateDoc(groupRef, groupData as FirestoreDocumentData);
@@ -42,6 +50,10 @@ export async function updateGroup(groupId: string, groupData: UpdateGroupData): 
 
 // Delete a group
 export async function deleteGroup(groupId: string): Promise<void> {
+  if (!db) {
+    throw new Error('Database not initialized');
+  }
+  
   try {
     const groupRef = doc(db, GROUPS_COLLECTION, groupId);
     await deleteDoc(groupRef);
@@ -53,6 +65,10 @@ export async function deleteGroup(groupId: string): Promise<void> {
 
 // Get all groups
 export async function getAllGroups(): Promise<Group[]> {
+  if (!db) {
+    throw new Error('Database not initialized');
+  }
+  
   try {
     const q = query(collection(db, GROUPS_COLLECTION), orderBy('order'), orderBy('name'));
     const querySnapshot = await getDocs(q);
@@ -69,6 +85,10 @@ export async function getAllGroups(): Promise<Group[]> {
 
 // Get a single group by ID
 export async function getGroupById(groupId: string): Promise<Group | null> {
+  if (!db) {
+    throw new Error('Database not initialized');
+  }
+  
   try {
     const groupRef = doc(db, GROUPS_COLLECTION, groupId);
     const groupSnap = await getDoc(groupRef);

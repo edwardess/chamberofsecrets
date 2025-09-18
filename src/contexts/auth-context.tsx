@@ -39,6 +39,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Listen for auth state changes
   useEffect(() => {
+    // Only set up auth listener on client side when auth is available
+    if (!auth || typeof window === 'undefined') {
+      setLoading(false);
+      return;
+    }
+
     const unsubscribe = onAuthStateChanged(auth, (authUser) => {
       setUser(authUser);
       
@@ -79,7 +85,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
       
       // Attempt sign in
-      await signInWithEmailAndPassword(auth, email, password);
+      await signInWithEmailAndPassword(auth!, email, password);
     } catch (error) {
       console.error("Sign in error:", error);
       
@@ -113,6 +119,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signOut = async () => {
     setError(null);
     try {
+      if (!auth) {
+        throw new Error("Firebase authentication is not initialized");
+      }
       await firebaseSignOut(auth);
     } catch (error) {
       console.error("Sign out error:", error);
