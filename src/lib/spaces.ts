@@ -150,7 +150,12 @@ export async function getSpaceGroups(): Promise<SpaceGroup[]> {
       });
     }
     
-    return spaceGroups.sort((a, b) => a.name.localeCompare(b.name));
+    // Sort groups by order field (0 comes first, then 1, etc.)
+    return spaceGroups.sort((a, b) => {
+      const groupA = groups.find(g => g.id === a.id);
+      const groupB = groups.find(g => g.id === b.id);
+      return (groupA?.order || 0) - (groupB?.order || 0);
+    });
   } catch (error) {
     console.error('Error getting space groups:', error);
     throw error;
